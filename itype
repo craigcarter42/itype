@@ -1,0 +1,94 @@
+#! /usr/bin/env python
+#  --  Attempt to import modules and return code if failure.
+im = 0
+try:
+    import sys;          im += 1
+    import plistlib;     im += 1
+    import os.path;      im += 1
+    import subprocess;   im += 1
+except:
+    if(im > 1): im += 1
+    print(" -- module import error(" + str(im) + ")")
+    quit()
+
+#  --  Get current user directory
+#  --  Create custom file path
+pathname = os.path.dirname(sys.argv[0])                
+path_to_dir =    os.path.abspath(pathname)
+path_to_help =   path_to_dir + "/resources/itype_help.txt"
+path_to_plist =  path_to_dir + "/resources/itype.plist"
+
+#  --  Set Data Types
+found_key = ""
+dumb_data = {"void" : "void"}
+plist_output = {}
+itype_plist = {}
+
+#  --  Confirm that string is greater than 0
+def string_len_check(string):
+    if(string == ""):
+        print(" -- no input given")
+        quit()
+    else:
+        pass
+
+#  --  Check if plist file exists
+#  --  If not create new plist
+#  --  Confirm that plist was created
+if(os.path.isfile(path_to_plist)):
+    itype_plist = plistlib.readPlist(path_to_plist)
+else:
+    print(" -- itype: no plist found")
+    plistlib.writePlist(dumb_data, path_to_plist)
+    if(os.path.isfile(path_to_plist)):
+        print(" -- itype: plist created")
+        itype_plist = plistlib.readPlist(path_to_plist)
+
+#  --  Get args for use
+key_to_search = sys.argv[1:]
+if(key_to_search > 0):
+    for key in key_to_search:
+        found_key = key
+
+#  --  Check value of args
+    if(str(found_key) == "add"): #  --  ADD
+        internal_model = raw_input("internal model: ")
+        string_len_check(internal_model)
+        external_model = raw_input("external model: ")
+        string_len_check(external_model)
+        print(" -- added: " + str(internal_model) + " : " + str(external_model))
+#  --   Write to PList file:
+        plist_output = {internal_model : external_model}
+        itype_plist.update({internal_model : external_model})
+        plistlib.writePlist(itype_plist, path_to_plist)
+#  --  LIST
+    elif(str(found_key) == "list"):
+        i = 1
+        for itp in itype_plist:
+            if(itp != "void"):
+                print(" " + str(i) + ". " + str(itp) + " " + str(itype_plist.get(itp)))
+                i += 1
+#  --  EXPORT
+    elif(str(found_key) == "export"):
+        export_path = raw_input("export-to-path: ")
+        string_len_check(export_path)
+        subprocess.call(["cp", path_to_plist, export_path])
+        if(os.path.isfile(export_path + "/itype.plist")):
+            print(" -- itype_exported: " + export_path)
+        else:
+             print(" -- itype_export: error")
+#  --  PURGE
+    elif(str(found_key) == "purge"):
+        subprocess.call(["rm", path_to_plist])
+        if(os.path.isfile(path_to_plist)):
+            pass
+        else:
+            print(" -- itype: plist purged")
+#  --  HELP
+    elif(str(found_key) == "help"):
+        if(os.path.isfile(path_to_help)):
+            help_file = open(path_to_help, 'r')
+            print(help_file.read())
+            help_file.close()
+        else:
+            print(" -- itype: help file not found")

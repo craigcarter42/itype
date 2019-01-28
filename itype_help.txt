@@ -1,0 +1,6 @@
+:: help
+ - add      enter internal hardware name and the external name
+ - list     returns list of all models listed in plist
+ - export   copies plist to any path given
+ - purge    deletes plist file (can't be undone)
+ - help     you are looking at it
